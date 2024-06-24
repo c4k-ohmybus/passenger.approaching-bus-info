@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>내 버스 확인</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>  
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@2.51.3/dist/full.css" rel="stylesheet" type="text/css" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2/dist/tailwind.min.css" rel="stylesheet" type="text/css" />
+  <link rel="shortcut icon" href="{{ url_for('static', filename='img/c4k.PNG') }}">
+  <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId={{ncp_client_id}}&submodules=geocoder"></script>
+
+</head>
+<body>
+<div id="container" align=center>
+    <H1 class="display-3">내 버스 언제와?</H1>
+    <form action="{{ url_for('favorite') }}" method="post" id="nearstopinfo">
+        <input type="hidden" id="API" name="API" value="{{ near_stop["API"] }}"/>
+        <input type="hidden" id="lat" name="lat" value="{{ near_stop["lat"] }}"/>
+        <input type="hidden" id="lon" name="lon" value="{{ near_stop["lon"] }}"/>
+        <input type="hidden" id="q_param_1" name="q_param_1" value="{{ near_stop["q_param_1"] }}"/>
+        <input type="hidden" id="q_param_2" name="q_param_2" value="{{ near_stop["q_param_2"] }}"/>   
+        <input id="name" name="name" value="{{ near_stop["name"] }}"/>    
+        <input type="submit" class="btn  btn-info btn-sm" value="주사용 정류소로 등록">
+    </form>
+    <div id="map" class="border border-info" style="width:80%;height:300px;"></div>
+    <table class="table table-bordered table-dark w-auto" text-align='center' width="80%">
+        <thead>
+            <tr>
+                <th>노선</th>
+                <th>남은 시간</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for n in next_buses %}
+                <tr>
+                    <td>{{n[0]}} </td> 
+                    <td>{{n[1]}}</td> 
+                </tr>                      
+            {% endfor %}
+        </tbody>
+    </table>    
+    <button type="button" class="btn btn-primary btn-sm" onclick = "window.location ='{{url_for('index')}}';">내 위치 다시 조회</button>
+    <button type="button" class="btn btn-primary btn-sm" onclick = "location.reload();">남은시간 새로고침</button>
+    {% include "foot.html" %}
+</div>
+<script>
+    //
+    var div_position = document.getElementById("position");
+    var div_address = document.getElementById("address");
+
+    // 현재 위치 설정
+    var current_pos = new naver.maps.LatLng( {{lat}}, {{lon}});
+    var isSeoul = false;
+
+    // 기본맵 구성
+    var mapOptions = {
+        center: current_pos,
+        zoom: 17
+    };
+    var map = new naver.maps.Map('map', mapOptions);
+    // 현재 위치 마커 추가
+    var marker_here = new naver.maps.Marker({
+        icon : "{{ url_for('static', filename='img/me_icon.png') }}",
+        position: current_pos,
+        map: map
+    }); 
+    // 인근 정류소 위치 마커 추가
+    var near_stop_pos = new naver.maps.LatLng( {{near_stop['lat']}}, {{near_stop['lon']}});    
+    var marker_near_stop = new naver.maps.Marker({
+        icon : "{{ url_for('static', filename='img/busstop_icon.png') }}",
+        position: near_stop_pos,
+        map: map
+    }); 
+    // 정류소 정보
+    var infoWindow = new naver.maps.InfoWindow({
+        content: '<div style="width:150px;text-align:center;padding:10px;"><b>"'+ near_stop['name'] +'"</b>.</div>'
+    });
+    infoWindow.open(map, marker_near_stop);
+    
+    
+</script>
+</body>
+</html>
